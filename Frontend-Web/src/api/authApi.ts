@@ -5,9 +5,10 @@ import { API_BASE_URL } from "../config/api";
 
 interface LoginApiProps {
     req: LoginRequest;
+    setError: (err: string) => void
 }
 
-export const loginApi = async ({req}: LoginApiProps): Promise<AuthResponse | null> => {
+export const loginApi = async ({req, setError}: LoginApiProps): Promise<AuthResponse | null> => {
     try {
         const response = await axios.post<AuthResponse>(
             `${API_BASE_URL}/auth/login`,
@@ -16,7 +17,7 @@ export const loginApi = async ({req}: LoginApiProps): Promise<AuthResponse | nul
         if (response && response.data) return response.data;
         return null;
     } catch (err: unknown) {
-        parseApiError(err)
+        setError(parseApiError(err))
         return null;
     }
 }

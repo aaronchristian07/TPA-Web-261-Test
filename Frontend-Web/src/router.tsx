@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router";
+import LoginPage from "./pages/LoginPage";
 
 const router = createBrowserRouter([
   {
@@ -10,7 +11,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "login",
-        // element: <LoginPage />
+        element: <LoginPage />
       },
     ]
   }
