@@ -15,11 +15,6 @@ type ForgotPassword struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-type VerifyOTP struct {
-	Email string `json:"email" binding:"required,email"`
-	Code  string `json:"code" binding:"required"`
-}
-
 type ResetPasswordRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,password"`
@@ -28,4 +23,8 @@ type ResetPasswordRequest struct {
 type AuthResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+type MessageResponse struct {
+	Message string `json:"message"`
 }
