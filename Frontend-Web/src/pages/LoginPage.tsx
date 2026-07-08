@@ -2,6 +2,7 @@ import { useState } from "react";
 import { loginApi } from "../api/authApi";
 import type { AuthResponse, LoginRequest } from "../dto/authDto";
 import { useNavigate } from "react-router";
+import { handleInput } from "../lib/util";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -11,45 +12,48 @@ export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const handleInput = (input: string): string => {
-    return input.slice(0, 30)
-  }
-
   const validateInputs = (): boolean => {
     if (username.length <= 0) {
-      setError("Fill in your username address")
+      setError("Fill in your username")
       return false;
     }
-    if (username.length > 20) {
-      setError("Username must be 20 characters or less")
+    if (username.length < 8 || username.length > 20) {
+      setError("Username must be between 8 and 20 characters")
       return false;
     }
     if (password.length <= 0) {
       setError("Fill in your password")
       return false;
     }
-    if (password.length > 20) {
-      setError("Password must be 20 characters or less")
+    if (password.length < 8 || password.length > 20) {
+      setError("Password must be between 8 and 20 characters")
       return false;
     }
     return true;
   }
 
   const handleSubmit = async () => {
-    if (loading || validateInputs()) return;
-    setLoading(true);
-    setError("");
-    
-    const req: LoginRequest = {
-      username: username,
-      password: password,
-    }
-    const response: AuthResponse | null = await loginApi({req, setError});
-    if (response) {
-      navigate("/dashboard")
-    }
+    try {
+        if (loading) return;
+        setLoading(true);
+        
+        if (!validateInputs()) {
+            return;
+        }
 
-    setLoading(false);
+        setError("");
+        
+        const req: LoginRequest = {
+            username: username,
+            password: password,
+        }
+        const response: AuthResponse | null = await loginApi({req, setError});
+        if (response) {
+            navigate("/dashboard")
+        }
+    } finally {
+        setLoading(false);
+    }
   }
 
   return (
@@ -69,7 +73,7 @@ export default function LoginPage() {
             <label
               className="font-semibold text-sm text-gray-600 pb-1 block"
               htmlFor="login"
-              >E-mail</label
+              >Username</label
             >
             <input
               className="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full"
@@ -204,7 +208,7 @@ export default function LoginPage() {
             <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
             <a
               className="text-xs text-gray-500 uppercase dark:text-gray-400 hover:underline"
-              href="#"
+              onClick={() => navigate("/auth/register")}
               >or sign up</a
             >
             <span className="w-1/5 border-b dark:border-gray-400 md:w-1/4"></span>
