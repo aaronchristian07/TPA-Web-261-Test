@@ -1,2 +1,70 @@
-service: 
+services:
+  postgres-master:
+    image: postgres:16-alpine
+    container_name: postgres-master
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-master:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - learning-net
+
+  nginx:
+    image: nginx:1.31-alpine
+    container_name: nginx
+    ports: 
+    - ${NGINX_PORT}:80
+    volumes:
+    - ./internal/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - learning-net
   
+  pgpool:
+    image: pgpool/pgpool:4.4.3
+    container_name: pgpool
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+    ports:
+      - ${DB_PORT}:5432
+    environment:
+      PGPOOL_PARAMS_PORT: 5432
+      PGPOOL_PARAMS_BACKEND_HOSTNAMES: postgres-master 
+      PGPOOL_PARAMS_BACKEND_PORT0: 5432
+      PGPOOL_PARAMS_BACKEND_WEIGHT0: 1
+      PGPOOL_PARAMS_BACKEND_FLAG0: ALWAYS_PRIMARY
+
+
+      PGPOOL_PARAMS_ENABLE_POOL_HBA: "off"
+      PGPOOL_PARAMS_ALLOW_CLEAR_TEXT_FRONTEND_AUTH: "on"
+
+      PGPOOL_PARAMS_SR_CHECK_PERIOD: 0
+      PGPOOL_PARAMS_HEALTH_CHECK_PERIOD: 0
+
+      PGPOOL_PARAMS_NUM_INIT_CHILDREN: 32
+      PGPOOL_PARAMS_MAX_POOL: 4
+      PGPOOL_PARAMS_LISTEN_ADDRESS: "*"
+
+      PGPOOL_PCP_USER: ${PGPOOL_PCP_USER}
+      PGPOOL_PCP_PASSWORD: ${PGPOOL_PCP_PASSWORD}
+    networks:
+      - learning-net
+
+volumes:
+  postgres-master:
+
+networks:
+  learning-net:
+    driver: bridge
